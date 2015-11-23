@@ -7,7 +7,12 @@ import "testing"
 // Also define an exported TestVersion with a value that matches
 // the internal testVersion here.
 
+func IsLeapYear(year int) bool {
+	return year%4 == 0 && (year%100 != 0 || year%400 == 0)
+}
+
 const testVersion = 1
+const TestVersion = testVersion
 
 // Retired testVersions
 // (none) 4a9e144a3c5dc0d9773f4cf641ffe3efe48641d8
