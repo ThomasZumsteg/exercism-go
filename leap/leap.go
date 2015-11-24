@@ -1,12 +1,15 @@
 package leap
 
+// TestVersion Version of the test suite that the program was build against
 const TestVersion = 1
 
 /*
-True if the year is a leap year
-leap years are evenly divisible by 4
-unless they are evenly divisible by 100
-and not evenly divisible by 400
+IsLeapYear
+Returns true if the "year" is a leap year, false otherwise
+
+Years are determined by the following rules
+The year is evenly divisble by 4 and not by 100
+unless it's evenly divisible by 400
 */
 func IsLeapYear(year int) bool {
 	return year%4 == 0 && (year%100 != 0 || year%400 == 0)
