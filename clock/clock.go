@@ -26,9 +26,5 @@ func (c Clock) String() string {
 
 /*Add move the time by a number of minutes.*/
 func (c Clock) Add(minutes int) Clock {
-	time := (c.minutes + minutes) % (60 * 24)
-	if time < 0 {
-		time += 60 * 24
-	}
-	return Clock{time}
+	return Time(0, c.minutes+minutes)
 }
