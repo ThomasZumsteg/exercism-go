@@ -6,9 +6,7 @@ import "fmt"
 const TestVersion = 2
 
 //Clock keeps time, limited to a day
-type Clock struct {
-	minutes int
-}
+type Clock int
 
 /*Time creates a Clock set to a given time.*/
 func Time(hour, minute int) Clock {
@@ -16,15 +14,15 @@ func Time(hour, minute int) Clock {
 	if time < 0 {
 		time += 60 * 24
 	}
-	return Clock{time}
+	return Clock(time)
 }
 
 /*String returns a clock in digital form hh:mm.*/
 func (c Clock) String() string {
-	return fmt.Sprintf("%02d:%02d", c.minutes/60, c.minutes%60)
+	return fmt.Sprintf("%02d:%02d", c/60, c%60)
 }
 
 /*Add move the time by a number of minutes.*/
 func (c Clock) Add(minutes int) Clock {
-	return Time(0, c.minutes+minutes)
+	return Time(0, int(c)+minutes)
 }
