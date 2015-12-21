@@ -10,7 +10,7 @@ func ConcurrentFrequency(wordList []string) FreqMap {
 
 	// Reduce the results to a single map
 	frequency := FreqMap{}
-	for i := 0; i < len(wordList); i++ {
+	for range wordList {
 		for key, value := range <-channel {
 			frequency[key] += value
 		}
