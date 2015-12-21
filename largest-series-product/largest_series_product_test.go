@@ -13,6 +13,8 @@ var tests = []struct {
 	product int64
 	ok      bool
 }{
+	{"1234a5",
+		2, 72, false},
 	{"0123456789",
 		2, 72, true},
 	{"12",
