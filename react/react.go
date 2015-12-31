@@ -1,81 +1,117 @@
 package react
 
-// import "fmt"
-
+//TestVersion is the unit tests this will pass.
 const TestVersion = 3
 
-type sheet []cell
+//sheet is a collection of cells.
+type sheet struct {
+	cells []*cell
+}
+
+//callback is a function that is called when the cell changes.
 type callback *func(int)
 
+//cell holds a value either computed or static.
 type cell struct {
-    callbacks []callback
-    value int
+	sheet     *sheet
+	value     int
+	update    func() bool
+	stale     bool
+	callbacks []callback
 }
 
+//Value returns the value of the cell
 func (c *cell) Value() int {
-    return c.value
+	return c.value
 }
 
+//SetValue sets the static value of a cell.
 func (c *cell) SetValue(val int) {
-    if c.value == val {
-        return
-    }
-    c.value = val
-    for _, callID := range c.callbacks{
-        call := *callID
-        call(val)
-    }
+	c.stale = (c.Value() == val)
+	c.value = val
+	c.sheet.update()
 }
 
-func (c *cell) AddCallback(call func(int)) CallbackHandle {
-    c.callbacks = append(c.callbacks, &call)
-    return &call
+/*AddCallback adds a function to be run when the cell changes*/
+func (c *cell) AddCallback(f func(int)) CallbackHandle {
+	c.callbacks = append(c.callbacks, &f)
+	return &f
 }
 
+/*RemoveCallback filters out callbacks so that the function no longer runs
+when a cell changes.*/
 func (c *cell) RemoveCallback(remove CallbackHandle) {
-    var newCallBacks []callback
-    removeAddr := callback(remove.(*func(int)))
-    for _, handle := range c.callbacks {
-        if handle != removeAddr {
-            newCallBacks = append(newCallBacks, handle)
-        }
-    }
-    c.callbacks = newCallBacks
+	var newCallbacks []callback
+	for _, handle := range c.callbacks {
+		if handle != callback(remove.(*func(int))) {
+			newCallbacks = append(newCallbacks, handle)
+		}
+	}
+	c.callbacks = newCallbacks
 }
 
+/*New creats a new collection of cells.*/
 func New() Reactor {
-    return &sheet{}
+	return &sheet{}
 }
 
+/*CreateInput adds an cell with a static value to the collection of cells.*/
 func (s *sheet) CreateInput(val int) InputCell {
-    inputCell := cell{}
-    inputCell.SetValue(val)
-    *s = append(*s, inputCell)
-    return &inputCell
+	inpCell := cell{sheet: s, value: val}
+
+	inpCell.update = func() bool {
+		state := inpCell.stale
+		inpCell.stale = false
+		return state
+	}
+
+	s.cells = append(s.cells, &inpCell)
+	return &inpCell
 }
 
-func (s *sheet) CreateCompute1(c Cell, f func(int)int) ComputeCell {
-    inputCell := c.(*cell)
-    computeCell := cell{}
-    var update = func(_ int) {
-        computeCell.SetValue(f(inputCell.Value()))
-    }
-    inputCell.AddCallback( update )
-    update(0)
-    return &computeCell
+/*CreateCompute1 adds a cell with a computed value to the collection of cells.*/
+func (s *sheet) CreateCompute1(input Cell, compVal func(int) int) ComputeCell {
+	var comp = func(cells []Cell) int {
+		return compVal(cells[0].Value())
+	}
+
+	return s.createComputeGeneral([]Cell{input}, comp)
 }
 
-func (s *sheet) CreateCompute2(c1, c2 Cell, f func(int, int)int) ComputeCell {
-    inputCell1 := c1.(*cell)
-    inputCell2 := c2.(*cell)
-    computeCell := cell{}
+/*CreateCompute2 adds a cell with a computed value that depends on two cells.*/
+func (s *sheet) CreateCompute2(input1, input2 Cell, compVal func(int, int) int) ComputeCell {
+	var comp = func(cells []Cell) int {
+		return compVal(cells[0].Value(), cells[1].Value())
+	}
 
-    var update = func(_ int) {
-        computeCell.SetValue(f(inputCell1.Value(), inputCell2.Value()))
-    }
-    update(0)
-    inputCell1.AddCallback( update )
-    inputCell2.AddCallback( update )
+	return s.createComputeGeneral([]Cell{input1, input2}, comp)
+}
 
-    return &computeCell
+/*createComputeGeneral creates a compute cell that can depend on
+any number of cells.*/
+func (s *sheet) createComputeGeneral(cells []Cell, compFunc func([]Cell) int) ComputeCell {
+	// Like an input cell but with a differnt update function
+	compCell := s.CreateInput(0).(*cell)
+
+	compCell.update = func() bool {
+		oldVal := compCell.Value()
+		compCell.value = compFunc(cells)
+		return oldVal != compCell.Value()
+	}
+
+	compCell.update()
+	return compCell
+}
+
+/*update checks all the cells in the sheet for an changes and runs callback on all
+changed cells*/
+func (s *sheet) update() {
+	for _, cellID := range s.cells {
+		if cellID.update() {
+			for _, callID := range cellID.callbacks {
+				call := *callID
+				call(cellID.Value())
+			}
+		}
+	}
 }
