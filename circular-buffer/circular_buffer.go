@@ -50,6 +50,6 @@ func (b *Buffer) Overwrite(c byte) {
 
 /*Reset clears the buffer of all data.*/
 func (b *Buffer) Reset() {
-    //Doesn't actually clear the buffer
+	//Doesn't actually clear the buffer
 	b.used = 0
 }
