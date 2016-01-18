@@ -10,7 +10,7 @@ func ParseOctal(oct string) (int64, error) {
 	var dec int64
 	for i, octDigit := range oct {
 		if octDigit < '0' || '7' < octDigit {
-			err := fmt.Sprintf("Not valid character: %s[%s]%s",
+			err := fmt.Sprintf("Not valid character: %s[%c]%s",
 				oct[:i], oct[i], oct[i+1:])
 			return 0, errors.New(err)
 		}
