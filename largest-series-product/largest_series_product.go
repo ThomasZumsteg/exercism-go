@@ -22,7 +22,7 @@ func LargestSeriesProduct(number string, span int) (int, error) {
 		for i := 0; i < span; i++ {
 			n, err := strconv.Atoi(string(number[i+start]))
 			if err != nil {
-				errMsg := fmt.Sprintf("%s(%s) does appear to be a valid digit", number[:i], number[i])
+				errMsg := fmt.Sprintf("%s(%c) does appear to be a valid digit", number[:i], number[i])
 				return 0, errors.New(errMsg)
 			}
 			slice *= n
