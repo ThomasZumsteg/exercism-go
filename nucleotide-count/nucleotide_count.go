@@ -23,7 +23,7 @@ func DNA(s string) Dna {
 func (d Dna) Count(n byte) (int, error) {
 	count, ok := d[n]
 	if !ok {
-		return 0, fmt.Errorf("%q is not a valid nucleotide")
+		return 0, fmt.Errorf("%q is not a valid nucleotide", n)
 	}
 	return count, nil
 }
