@@ -1,7 +1,10 @@
-package bracket_push
+package brackets
 
 //bracketType sorts characters into either opening, closing, or not a bracket
 type bracketType int
+
+//TestVersion is the version of unit tests that this will pass
+const TestVersion = 2
 
 const (
 	openBracket bracketType = iota
