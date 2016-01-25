@@ -11,46 +11,36 @@ type Cipher interface {
 }
 
 //cipher holds the key used to encipher messages.
-type cipher struct {
-	shiftDist []int
-	index     int
-}
+type cipher []int
 
 /*shiftLetter encodes a letter based on some function.*/
-func (c *cipher) shiftLetter(char rune, shift func(int, int) int) string {
-	if !unicode.IsLetter(char) {
-		return ""
+func (c cipher) shiftLetters(letters string, shift func(int, int) int) string {
+	shiftedText := ""
+	for _, letter := range letters {
+		if !unicode.IsLetter(letter) {
+			continue
+		}
+		shiftDist := c[len(shiftedText)%len(c)]
+		s := shift(int(unicode.ToLower(letter)), shiftDist)
+		switch {
+		case s < 'a':
+			s += 'z' - 'a' + 1
+		case 'z' < s:
+			s -= 'z' - 'a' + 1
+		}
+		shiftedText += string(s)
 	}
-	shiftDist := c.shiftDist[c.index%len(c.shiftDist)]
-	c.index++
-	s := shift(int(unicode.ToLower(char)), shiftDist)
-	switch {
-	case s < 'a':
-		s += 'z' - 'a' + 1
-	case 'z' < s:
-		s -= 'z' - 'a' + 1
-	}
-	return string(s)
+	return shiftedText
 }
 
 /*Encode encrypts a message.*/
 func (c *cipher) Encode(plainText string) string {
-	cipherText := ""
-	for _, char := range plainText {
-		cipherText += c.shiftLetter(char, func(a, b int) int { return a + b })
-	}
-	c.index = 0
-	return cipherText
+	return c.shiftLetters(plainText, func(a, b int) int { return a + b })
 }
 
 /*Decode decrypts a message.*/
 func (c *cipher) Decode(cipherText string) string {
-	plainText := ""
-	for _, char := range cipherText {
-		plainText += c.shiftLetter(char, func(a, b int) int { return a - b })
-	}
-	c.index = 0
-	return plainText
+	return c.shiftLetters(cipherText, func(a, b int) int { return a - b })
 }
 
 /*NewCaesar creates a new Caesar shift cipher.*/
@@ -63,7 +53,8 @@ func NewShift(shift int) Cipher {
 	if shift < -25 || 25 < shift || shift == 0 {
 		return nil
 	}
-	return &cipher{shiftDist: []int{shift}}
+	c := cipher([]int{shift})
+	return &c
 }
 
 /*NewVigenere creates a new Vigenere cipher.*/
@@ -81,7 +72,8 @@ func NewVigenere(shift string) Cipher {
 		}
 		shiftInt[i] = int(c - 'a')
 	}
-	return &cipher{shiftDist: shiftInt}
+	c := cipher(shiftInt)
+	return &c
 }
 
 /*all check if all items in a string pass some function.*/
