@@ -41,7 +41,7 @@ type state struct {
 
 /*Room3 runs the colision and orchestration of multiple robots.*/
 func Room3(extent Rect, robots []Place, actions chan Action3, report chan []Place, log chan string) {
-    //Setup robot tracking
+	//Setup robot tracking
 	robotStates := make(map[string]*state)
 	for r, robot := range robots {
 		_, ok := robotStates[robot.Name]
@@ -62,7 +62,7 @@ func Room3(extent Rect, robots []Place, actions chan Action3, report chan []Plac
 		return
 	}
 
-    //Run the commands
+	//Run the commands
 	clearState := getState()
 	for activeRobots(robotStates) {
 		robot := <-actions
@@ -110,6 +110,7 @@ func robotOnSquare(square Pos, otherRobots map[string]*state) string {
 	}
 	return ""
 }
+
 /*====================STEP 2====================*/
 
 /*Action are function that a robot can preform.*/
