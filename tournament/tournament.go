@@ -87,6 +87,7 @@ func (b scoreBoard) getTeams() []team {
 
 //byScore sorts the teams by points, then by wins, then aphabetically
 type byScore []team
+
 func (t byScore) Len() int      { return len(t) }
 func (t byScore) Swap(i, j int) { t[i], t[j] = t[j], t[i] }
 func (t byScore) Less(i, j int) bool {
