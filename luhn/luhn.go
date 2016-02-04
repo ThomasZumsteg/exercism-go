@@ -3,6 +3,7 @@ package luhn
 import (
 	"errors"
 	"strconv"
+	"unicode"
 )
 
 /*Valid determines if a luhn code is correct.*/
@@ -13,11 +14,32 @@ func Valid(code string) bool {
 
 /*AddCheck creates a valid luhn code.*/
 func AddCheck(code string) string {
+	finalDigit := "0"
 	t, _ := checkSum(code + "0")
-	if t%10 == 0 {
-		return code + strconv.Itoa(0)
+	if t%10 != 0 {
+		finalDigit = strconv.Itoa(10 - (t % 10))
 	}
-	return code + strconv.Itoa(10-(t%10))
+	if all(digitsAreFullWidth, code) {
+		// Added digit should be full width if all the others are
+		finalDigit = string(int(finalDigit[0]) + int('０') - '0')
+	}
+	return code + finalDigit
+}
+
+/*all checks that a condition is true of all elements.*/
+func all(condition func(rune) bool, items string) bool {
+	for _, char := range items {
+		if !condition(char) {
+			return false
+		}
+	}
+	return true
+}
+
+/*digitsAreFullWidth checks if a rune is not a digit or full width.*/
+func digitsAreFullWidth(char rune) bool {
+	digit := int(char) - int('０')
+	return !unicode.IsDigit(char) || 0 <= digit && digit < 10
 }
 
 /*checkSum computes the check sum of a luhn code*/
