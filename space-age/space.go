@@ -2,7 +2,7 @@ package space
 
 type Planet string
 
-const EARTH_SECONDS = 31557600
+const EarthSeconds = 31557600
 
 func Age(seconds float64, p Planet) float64 {
 	var year float64
@@ -24,5 +24,5 @@ func Age(seconds float64, p Planet) float64 {
 	case "Neptune":
 		year = 164.79132
 	}
-	return seconds / (EARTH_SECONDS * year)
+	return seconds / (EarthSeconds * year)
 }
