@@ -12,25 +12,25 @@ func Abbreviate(s string) string {
 
 func SplitAny(s string, seps []string) []string {
 	var result []string
-    word := ""
+	word := ""
 	for _, char := range s {
-        add := true
-        for _, sep := range seps {
-            if sep == string(char) {
-                if word != "" {
-                    result = append(result, word)
-                    word = ""
-                    add = false
-                    break
-                }
-            }
-        }
-        if add {
-            word += string(char)
-        }
+		add := true
+		for _, sep := range seps {
+			if sep == string(char) {
+				if word != "" {
+					result = append(result, word)
+					word = ""
+					add = false
+					break
+				}
+			}
+		}
+		if add {
+			word += string(char)
+		}
 	}
-    if word != "" {
-        result = append(result, word)
-    }
+	if word != "" {
+		result = append(result, word)
+	}
 	return result
 }
