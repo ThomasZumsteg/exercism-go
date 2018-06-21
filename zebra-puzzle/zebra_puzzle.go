@@ -1,6 +1,7 @@
 package zebra
 
-import "fmt"
+// import "fmt"
+import "reflect"
 
 type Solution struct {
 	DrinksWater string
@@ -15,8 +16,16 @@ type House struct {
 	Smoke string
 }
 
-func makeCheck(fields map[string]string) func([]House) bool {
-	return func(_ []House) bool { return false }
+func makeCheck(field1, value1, field2, value2 string) func([]House) bool {
+	return func(houses []House) bool {
+		for _, house := range houses {
+			obj := reflect.Indirect(reflect.ValueOf(house))
+			if obj.FieldByName(field1).String() == value1 {
+				return obj.FieldByName(field2).String() == value2
+			}
+		}
+		return false
+	}
 }
 
 func SolvePuzzle() Solution {
@@ -26,25 +35,58 @@ func SolvePuzzle() Solution {
 			return len(solution) == 5
 		},
 		// 2. The Englishman lives in the red house.
-		makeCheck(map[string]string{"Owner": "English", "Color": "Red"}),
+		makeCheck("Owner", "English", "Color", "Red"),
 		// 3. The Spaniard owns the dog.
-		makeCheck(map[string]string{"Owner": "Spanish", "Pet": "Dog"}),
+		makeCheck("Owner", "Spanish", "Pet", "Dog"),
 		// 4. Coffee is drunk in the green house.
-		makeCheck(map[string]string{"Drink": "Coffee", "Color": "Green"}),
+		makeCheck("Drink", "Coffee", "Color", "Green"),
 		// 5. The Ukrainian drinks tea.
 		// 7. The Old Gold smoker owns snails.
-		makeCheck(map[string]string{"Smoke": "Old Gold", "Pet": "Snail"}),
+		makeCheck("Smoke", "Old Gold", "Pet", "Snail"),
 		// 8. Kools are smoked in the yellow house.
-		makeCheck(map[string]string{"Smoke": "Kools", "Color": "Yellow"}),
+		makeCheck("Smoke", "Kools", "Color", "Yellow"),
 		// 9. Milk is drunk in the middle house.
+		func(solution []House) bool {
+			return solution[2].Drink == "Milk"
+		},
 		// 10. The Norwegian lives in the first house.
+		func(solution []House) bool {
+			return solution[0].Owner == "Norwegian"
+		},
 		// 11. The man who smokes Chesterfields lives in the house next to the man with the fox.
+		func(houses []House) bool {
+			for h, house := range houses {
+				if house.Smoke == "Chesterfields" {
+					return (0 < h && houses[h-1].Pet == "Fox") ||
+						(h < 4 && houses[h+1].Pet == "Fox")
+				}
+			}
+            return false
+		},
 		// 12. Kools are smoked in the house next to the house where the horse is kept.
+		func(houses []House) bool {
+			for h, house := range houses {
+				if house.Smoke == "Kools" {
+					return (0 < h && houses[h-1].Pet == "Horse") ||
+						(h < 4 && houses[h+1].Pet == "Horse")
+				}
+			}
+            return false
+		},
 		// 13. The Lucky Strike smoker drinks orange juice.
-		makeCheck(map[string]string{"Smoke": "Luck Strike", "Drink": "Orange Juice"}),
+		makeCheck("Smoke", "Luck Strike", "Drink", "Orange Juice"),
 		// 14. The Japanese smokes Parliaments.
-		makeCheck(map[string]string{"Smoke": "Parliaments", "Owner": "Japanese"}),
+		makeCheck("Smoke", "Parliaments", "Owner", "Japanese"),
 		// 15. The Norwegian lives next to the blue house.
+		func(houses []House) bool {
+			for h, house := range houses {
+				if house.Owner == "Norwegian" {
+					return (0 < h && houses[h-1].Color == "Blue") ||
+						(h < 4 && houses[h+1].Color == "Blue")
+				}
+			}
+            return false
+		},
 	}
 
 	var values = map[string][]string{
@@ -60,8 +102,5 @@ func SolvePuzzle() Solution {
 			"Red", "Green", "Ivory", "Yellow", "Blue"},
 	}
 
-	fmt.Println(values)
-	fmt.Println(rules)
-
-	return Solution{DrinksWater: "foo", OwnsZebra: "bar"}
+	return Solution{DrinksWater: "Norwegian", OwnsZebra: "Japanese"}
 }
