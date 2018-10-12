@@ -1,37 +1,37 @@
 package rectangles
 
 func Count(grid []string) int {
-    total := 0
-    for i, row := range grid {
-        for j, char := range row {
-            if char == '+' {
-                for height := 1; height < len(grid) - i; height++ {
-                    for width := 1; width < len(grid[i]) - j; width++ {
-                        if CheckRectangle(grid, height, width) {
-                            total++
-                        }
-                    }
-                }
-            }
-        }
-    }
-    return total
+	total := 0
+	for i := 0; i < len(grid); i++ {
+		for j := 0; j < len(grid[i]); j++ {
+			for h := i + 1; h < len(grid); h++ {
+				for w := j + 1; w < len(grid[i]); w++ {
+					if CheckRectangle(grid, i, j, h, w) {
+						total++
+					}
+				}
+			}
+		}
+	}
+	return total
 }
 
-func CheckRectangle(grid []string, height, width int) bool {
-    for i := 0; i <= height; i++ {
-        if (i == 0 || i == height) && (grid[i][width] != '+' || grid[i][0] != '+') {
-            return false
-        } else if !(grid[i][width] == '|' || grid[i][width] == '+') || !(grid[i][0] == '|' || grid[i][0] == '+') {
-            return false
-        }
-    }
-    for j := 0; j < width; j++ {
-        if (j == 0 || j == height) && (grid[height][j] != '+' || grid[0][j] != '+') {
-            return false
-        } else if !(grid[width][j] == '-' || grid[width][j] == '+') || !(grid[0][j] == '-' || grid[0][j] == '+') {
-            return false
-        }
-    }
-    return true;
+func CheckRectangle(grid []string, i, j, h, w int) bool {
+	for x := i; x <= h; x++ {
+		if (x == i || x == h) && (grid[x][j] != '+' || grid[x][w] != '+') {
+			return false
+		} else if !(grid[x][j] == '|' || grid[x][j] == '+') ||
+			!(grid[x][w] == '|' || grid[x][w] == '+') {
+			return false
+		}
+	}
+	for y := j; y <= w; y++ {
+		if (y == j || y == w) && (grid[i][y] != '+' || grid[h][y] != '+') {
+			return false
+		} else if !(grid[i][y] == '-' || grid[i][y] == '+') ||
+			!(grid[h][y] == '-' || grid[h][y] == '+') {
+			return false
+		}
+	}
+	return true
 }
