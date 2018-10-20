@@ -25,9 +25,37 @@ func Parse(input string) ([]string, [][]string, map[string]bool) {
     return value, terms, letters
 }
 
+func Translate(word []string, letter_map map[string]int) (int, error) {
+    result := 0
+    for _, letter := range word {
+        if digit, ok := letter_map[letter]; ok {
+            result = result * 10 + digit
+        } else {
+            return result, fmt.Errorf("Unmapped letter %s", letter)
+        }
+    }
+    return result, nil
+}
+
 func Solve(input string) (map[string]int, error) {
     value, terms, letters := Parse(input)
-    fmt.Printf("%v == %v\n", value, terms)
-    fmt.Println(letters)
-    return map[string]int{"L":0, "B":9, "I":1}, nil
+    letter_map := map[string]int{}
+    for i, letter := range letters {
+        letter_map[letter] = i
+    }
+    for true {
+        total := 0
+        for _, term := range terms {
+            result, _ := Translate(term, letter_map)
+            total += result
+        }
+        compare, _ := Translate(value, letter_map)
+        if compare == total {
+            return letter_map, nil
+        }
+        letter_map[letters[0]] += 1
+        for _, letter := range letter {
+        }
+    }
+    return nil, fmt.Errorf("No valid solution")
 }
