@@ -5,7 +5,7 @@ import (
     "fmt"
 )
 
-func Parse(input string) ([]string, [][]string, map[string]bool) {
+func Parse(input string) ([]string, [][]string, []string) {
     result := strings.Split(input, " == ")
 
     value := strings.Split(result[1], "")
@@ -22,7 +22,13 @@ func Parse(input string) ([]string, [][]string, map[string]bool) {
             letters[l] = true
         }
     }
-    return value, terms, letters
+    letter_list := []string{}
+    for key, val := range letters {
+        if val {
+            letter_list = append(letter_list, key)
+        }
+    }
+    return value, terms, letter_list
 }
 
 func Translate(word []string, letter_map map[string]int) (int, error) {
@@ -37,24 +43,63 @@ func Translate(word []string, letter_map map[string]int) (int, error) {
     return result, nil
 }
 
+func Combo(keys []string, values []int) (func() (bool, map[string]int)) {
+    key := keys[0]
+    v := 0
+    fmt.Printf("New iterator: %v - %v\n", keys, values)
+    if len(keys) == 1 {
+        return func() (bool, map[string]int) {
+            v += 1
+            if v <= len(values) {
+                return true, map[string]int{ key: v-1 }
+            }
+            fmt.Printf("Base done: %s\n", key)
+            return false, nil
+        }
+    }  else {
+        new_values := []int{}
+        for i, val := range values {
+            if i != v {
+                new_values = append(new_values, val)
+            }
+        }
+        gen := Combo(keys[1:], new_values)
+        return func() (bool, map[string]int) {
+            for true {
+                if ok, combo := gen(); ok {
+                    combo[key] = v
+                    return true, combo
+                }
+                v += 1
+                if len(values) <= v {
+                    break
+                }
+                new_values = []int{}
+                for i, val := range values {
+                    if i != v {
+                        new_values = append(new_values, val)
+                    }
+                }
+                gen = Combo(keys[1:], new_values)
+            }
+            return false, nil
+        }
+    }
+}
+
 func Solve(input string) (map[string]int, error) {
     value, terms, letters := Parse(input)
-    letter_map := map[string]int{}
-    for i, letter := range letters {
-        letter_map[letter] = i
-    }
-    for true {
+    gen := Combo(letters, []int{0,1,2,3,4,5,6,7,8,9})
+    for ok, letter_map := gen(); ok; ok, letter_map = gen() {
+        fmt.Printf("%v\n", letter_map)
         total := 0
         for _, term := range terms {
             result, _ := Translate(term, letter_map)
             total += result
         }
         compare, _ := Translate(value, letter_map)
-        if compare == total {
+        if compare == total && false {
             return letter_map, nil
-        }
-        letter_map[letters[0]] += 1
-        for _, letter := range letter {
         }
     }
     return nil, fmt.Errorf("No valid solution")
