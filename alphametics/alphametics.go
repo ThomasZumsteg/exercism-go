@@ -88,16 +88,23 @@ func Combo(keys []string, values []int) (func() (bool, map[string]int)) {
 func Solve(input string) (map[string]int, error) {
     value, terms, letters := Parse(input)
     gen := Combo(letters, []int{0,1,2,3,4,5,6,7,8,9})
-    for ok, letter_map := gen(); ok; ok, letter_map = gen() {
-        total := 0
-        for _, term := range terms {
-            result, _ := Translate(term, letter_map)
-            total += result
+    Iteration:
+        for ok, letter_map := gen(); ok; ok, letter_map = gen() {
+            total := 0
+            if digit, ok := letter_map[value[0]]; ok && digit == 0 {
+                continue Iteration
+            }
+            for _, term := range terms {
+                if value, ok := letter_map[term[0]]; ok && value == 0 {
+                    continue Iteration
+                }
+                result, _ := Translate(term, letter_map)
+                total += result
+            }
+            compare, _ := Translate(value, letter_map)
+            if compare == total {
+                return letter_map, nil
+            }
         }
-        compare, _ := Translate(value, letter_map)
-        if compare == total {
-            return letter_map, nil
-        }
-    }
     return nil, fmt.Errorf("No valid solution")
 }
