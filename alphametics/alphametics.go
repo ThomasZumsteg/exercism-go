@@ -46,14 +46,12 @@ func Translate(word []string, letter_map map[string]int) (int, error) {
 func Combo(keys []string, values []int) (func() (bool, map[string]int)) {
     key := keys[0]
     v := 0
-    fmt.Printf("New iterator: %v - %v\n", keys, values)
     if len(keys) == 1 {
         return func() (bool, map[string]int) {
             v += 1
             if v <= len(values) {
-                return true, map[string]int{ key: v-1 }
+                return true, map[string]int{ key: values[v-1] }
             }
-            fmt.Printf("Base done: %s\n", key)
             return false, nil
         }
     }  else {
@@ -67,7 +65,7 @@ func Combo(keys []string, values []int) (func() (bool, map[string]int)) {
         return func() (bool, map[string]int) {
             for true {
                 if ok, combo := gen(); ok {
-                    combo[key] = v
+                    combo[key] = values[v]
                     return true, combo
                 }
                 v += 1
@@ -91,14 +89,13 @@ func Solve(input string) (map[string]int, error) {
     value, terms, letters := Parse(input)
     gen := Combo(letters, []int{0,1,2,3,4,5,6,7,8,9})
     for ok, letter_map := gen(); ok; ok, letter_map = gen() {
-        fmt.Printf("%v\n", letter_map)
         total := 0
         for _, term := range terms {
             result, _ := Translate(term, letter_map)
             total += result
         }
         compare, _ := Translate(value, letter_map)
-        if compare == total && false {
+        if compare == total {
             return letter_map, nil
         }
     }
