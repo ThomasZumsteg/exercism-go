@@ -6,22 +6,18 @@ import (
     // "fmt"
 )
 
-type Rule func(House) bool
+type House map[string]string
+type Set []House
+type Rule func(Set) bool
 
 type Solution struct {
 	DrinksWater string
 	OwnsZebra   string
 }
 
-type House map[string]string
 
-func makeHouses(attribute_map map[string][]string) []House {
-    houses := []House{}
-    for h := 0; h < 5; h++ {
-        house := make(map[string]string)
-        house["Position"] = strconv.Itoa(h)
-        houses = append(houses, house)
-    }
+func MakeSolutions(attribute_map map[string][]string) []Set {
+    houses := []Set{}
     for attr, values := range attribute_map {
         new_houses := []House{}
         for _, value := range values {
@@ -37,13 +33,29 @@ func makeHouses(attribute_map map[string][]string) []House {
 }
 
 func makeRule(key1, value1, key2, value2, position string) Rule {
-    return func(house House) bool {
+    return func(houses Set) bool {
+        var pos1, pos2 int
+        for _, house := range houses {
+            if house[key1] == value1 {
+                pos1, _ = strconv.Atoi(house["position"])
+            }
+            if house[key2] == value2 {
+                pos2, _ = strconv.Atoi(house["position"])
+            }
+        }
+        switch position {
+        case "same": return pos1 == pos2
+        case "right": return pos1 + 1 == pos2
+        case "left": return pos1 == 1 + pos2
+        case "next to": return (pos1 + 1 == pos2) || (pos1 == pos2 + 1)
+        }
         return false
     }
 }
 
 func SolvePuzzle() Solution {
 	var values = map[string][]string{
+		"Position": strings.Split("1,2,3,4,5", ","),
 		"Owners": strings.Split("English,Spanish,Ukrainian,Norwegian,Japanses", ","),
 		"Pets": strings.Split("Dog,Snail,Fox,Horse,Zebra", ","),
         "Drink": strings.Split("Water,Milk,Tea,Orange Juice,Coffee", ","),
@@ -51,7 +63,7 @@ func SolvePuzzle() Solution {
 		"Color": strings.Split("Red,Green,Ivory,Yellow,Blue", ","),
 	}
 
-    houses := makeHouses(values)
+    solutions := MakeSolutons(values)
 	var rules = [](Rule){
 		// 2. The Englishman lives in the red house.
 		makeRule("Owner", "English", "Color", "Red", "same"),
@@ -80,9 +92,15 @@ func SolvePuzzle() Solution {
 		// 14. The Japanese smokes Parliaments.
 		makeRule("Smoke", "Parliaments", "Owner", "Japanese", "same"),
 	}
-    
+
     for _, rule := range rules {
-        
+        new_solutions := []Set{}
+        for _, sol := range solutions {
+            if rule(sol) {
+                new_solutions = append(new_solutions, sol)
+            }
+        }
+        solutions = new_solutions
     }
 
 	return Solution{DrinksWater: "Norwegian", OwnsZebra: "Japanese"}
