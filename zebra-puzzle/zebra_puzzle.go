@@ -2,38 +2,70 @@ package zebra
 
 import (
     "strings"
+    "sort"
     "strconv"
     // "fmt"
 )
 
 type House map[string]string
-type Set []House
-type Rule func(Set) bool
+type Rule func([]House) bool
 
 type Solution struct {
 	DrinksWater string
 	OwnsZebra   string
 }
 
+type ByHash []string
 
-func MakeSolutions(attribute_map map[string][]string) []Set {
-    houses := []Set{}
-    for attr, values := range attribute_map {
-        new_houses := []House{}
-        for _, value := range values {
-            for _, house := range houses {
-                new_house := house
-                house[attr] = value
-                new_houses = append(new_houses, new_house)
+func (a ByHash) Len() int { return len(a) }
+func (a ByHash) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
+func (a ByHash) Less(i, j int) bool { return a[i] < a[j] }
+
+
+func Permutations(items []string) func() []string {
+    n_items := len(items)
+    sort.Sort(ByHash(items))
+    return func() []string {
+        for k := n_items - 1; k <= 0; k-- {
+            if items[k] < items[k+1] {
+                items[k], items[k+1] = items[k+1], items[k]
+                ret_items := make([]string, n_items)
+                copy(ret_items, items)
+                return ret_items
             }
         }
-        houses = new_houses
+        return nil;
     }
-    return houses
+}
+
+
+func MakeSolutions(attribute_map map[string][]string) [][]House {
+    solutions := [][]House{[]House{
+        House{"Position": "1"},
+        House{"Position": "2"},
+        House{"Position": "3"},
+        House{"Position": "4"},
+        House{"Position": "5"}}}
+    for attr, values := range attribute_map {
+        new_solutions := [][]House{}
+        for _, houses := range solutions {
+            gen := Permutations(values)
+            for perm := gen(); perm != nil; perm = gen() {
+                new_iter := make([]House, 5)
+                copy(new_iter, houses)
+                for i := 0; i < len(values); i++ {
+                    new_iter[i][attr] = values[i]
+                }
+                new_solutions = append(new_solutions, new_iter)
+            }
+        }
+        solutions = new_solutions
+    }
+    return solutions
 }
 
 func makeRule(key1, value1, key2, value2, position string) Rule {
-    return func(houses Set) bool {
+    return func(houses []House) bool {
         var pos1, pos2 int
         for _, house := range houses {
             if house[key1] == value1 {
@@ -49,13 +81,12 @@ func makeRule(key1, value1, key2, value2, position string) Rule {
         case "left": return pos1 == 1 + pos2
         case "next to": return (pos1 + 1 == pos2) || (pos1 == pos2 + 1)
         }
-        return false
+        panic("Not a valid rule")
     }
 }
 
 func SolvePuzzle() Solution {
 	var values = map[string][]string{
-		"Position": strings.Split("1,2,3,4,5", ","),
 		"Owners": strings.Split("English,Spanish,Ukrainian,Norwegian,Japanses", ","),
 		"Pets": strings.Split("Dog,Snail,Fox,Horse,Zebra", ","),
         "Drink": strings.Split("Water,Milk,Tea,Orange Juice,Coffee", ","),
@@ -63,7 +94,7 @@ func SolvePuzzle() Solution {
 		"Color": strings.Split("Red,Green,Ivory,Yellow,Blue", ","),
 	}
 
-    solutions := MakeSolutons(values)
+    solutions :=  MakeSolutions(values)
 	var rules = [](Rule){
 		// 2. The Englishman lives in the red house.
 		makeRule("Owner", "English", "Color", "Red", "same"),
@@ -94,7 +125,7 @@ func SolvePuzzle() Solution {
 	}
 
     for _, rule := range rules {
-        new_solutions := []Set{}
+        new_solutions := [][]House{}
         for _, sol := range solutions {
             if rule(sol) {
                 new_solutions = append(new_solutions, sol)
