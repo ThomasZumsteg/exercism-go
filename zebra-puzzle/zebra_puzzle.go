@@ -4,7 +4,7 @@ import (
     "strings"
     "sort"
     "strconv"
-    // "fmt"
+    "fmt"
 )
 
 type House map[string]string
@@ -25,13 +25,24 @@ func (a ByHash) Less(i, j int) bool { return a[i] < a[j] }
 func Permutations(items []string) func() []string {
     n_items := len(items)
     sort.Sort(ByHash(items))
+    first := true
     return func() []string {
-        for k := n_items - 1; k <= 0; k-- {
+        if first {
+            first = false
+            ret_items := make([]string, n_items)
+            copy(ret_items, items)
+            return ret_items
+        }
+        for k := n_items - 2; k >= 0; k-- {
             if items[k] < items[k+1] {
-                items[k], items[k+1] = items[k+1], items[k]
-                ret_items := make([]string, n_items)
-                copy(ret_items, items)
-                return ret_items
+                for i := n_items - 1; k < i; i-- {
+                    if items[k] < items[i] {
+                        items[k], items[i] = items[i], items[k]
+                        ret_items := make([]string, n_items)
+                        copy(ret_items, items)
+                        return ret_items
+                    }
+                }
             }
         }
         return nil;
@@ -40,13 +51,25 @@ func Permutations(items []string) func() []string {
 
 
 func MakeSolutions(attribute_map map[string][]string) [][]House {
-    solutions := [][]House{[]House{
-        House{"Position": "1"},
-        House{"Position": "2"},
-        House{"Position": "3"},
-        House{"Position": "4"},
-        House{"Position": "5"}}}
+    items := []string{ "1", "2", "3", "4" }
+    gen := Permutations(items)
+    for perm := gen(); perm != nil; perm = gen() {
+        fmt.Printf("Items: %v\n", perm)
+    }
+    panic("nope")
+
+    solutions := [][]House{}
+    first := true
     for attr, values := range attribute_map {
+        if first {
+            first = false
+            first_set := []House{}
+            for _, val := range values {
+                first_set = append(first_set, House{ attr: val })
+            }
+            solutions = append(solutions, first_set)
+            continue
+        }
         new_solutions := [][]House{}
         for _, houses := range solutions {
             gen := Permutations(values)
@@ -69,7 +92,7 @@ func makeRule(key1, value1, key2, value2, position string) Rule {
         var pos1, pos2 int
         for _, house := range houses {
             if house[key1] == value1 {
-                pos1, _ = strconv.Atoi(house["position"])
+                pos1, _ = strconv.Atoi(house["Position"])
             }
             if house[key2] == value2 {
                 pos2, _ = strconv.Atoi(house["position"])
@@ -87,6 +110,7 @@ func makeRule(key1, value1, key2, value2, position string) Rule {
 
 func SolvePuzzle() Solution {
 	var values = map[string][]string{
+		"Position": strings.Split("1,2,3,4,5", ","),
 		"Owners": strings.Split("English,Spanish,Ukrainian,Norwegian,Japanses", ","),
 		"Pets": strings.Split("Dog,Snail,Fox,Horse,Zebra", ","),
         "Drink": strings.Split("Water,Milk,Tea,Orange Juice,Coffee", ","),
